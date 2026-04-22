@@ -177,11 +177,11 @@ benchmark:
   concurrencies: "8192"
   req_rate: "inf"
   custom_tokenizer: "glm_moe_dsa"
-  use_chat_template: false
+  use_chat_template: true
 
 frontend:
   type: "dynamo"
-  enable_multiple_frontends: false
+  enable_multiple_frontends: true
 
 health_check:
   max_attempts: 360
