@@ -1,6 +1,6 @@
-# GLM-5 FP8 STP, 16k ISL / 512 OSL, low-latency concurrency sweep.
-# 1 prefill replica + 15 decode replicas = 16 GB300 nodes / 64 GPUs.
-name: glm5-gb300-fp8-stp-16k512-lowlatency-1p15d-bs18
+# Expanded from NVIDIA recipes/gb300-fp8/glm5.yaml:zip_override_8k1k_lowlat[0]
+# STP only. Topology: 1 prefill + 9 decode nodes = 10 nodes / 40 GPUs.
+name: glm5-gb300-fp8-stp-8k1k-lowlatency-1p9d-bs15-conc150
 
 model:
   path: glm5-fp8
@@ -18,15 +18,15 @@ identity:
     sglang: 0.5.14
 
 slurm:
-  time_limit: "04:00:00"
+  time_limit: "01:30:00"
 
 resources:
   gpu_type: gb300
   gpus_per_node: 4
   prefill_nodes: 1
   prefill_workers: 1
-  decode_nodes: 15
-  decode_workers: 15
+  decode_nodes: 9
+  decode_workers: 9
 
 frontend:
   type: dynamo
@@ -54,6 +54,7 @@ backend:
     SGLANG_USE_MESSAGE_QUEUE_BROADCASTER: "0"
     SGLANG_DISABLE_TP_MEMORY_INBALANCE_CHECK: "1"
     DYN_REQUEST_PLANE: nats
+
   decode_environment:
     TORCH_DISTRIBUTED_DEFAULT_TIMEOUT: "1800"
     UCX_MODULE_DIR: "/usr/local/lib/python3.12/dist-packages/nixl_cu13.libs/ucx"
@@ -84,12 +85,12 @@ backend:
       kv-cache-dtype: fp8_e4m3
       disaggregation-mode: prefill
       disaggregation-transfer-backend: nixl
-      max-running-requests: 160
-      cuda-graph-max-bs-decode: 160
+      max-running-requests: 256
+      cuda-graph-max-bs-decode: 256
       mem-fraction-static: 0.7
-      context-length: 16896
-      chunked-prefill-size: 65536
-      max-prefill-tokens: 16384
+      context-length: 9600
+      chunked-prefill-size: 32768
+      max-prefill-tokens: 8192
       tensor-parallel-size: 4
       data-parallel-size: 4
       expert-parallel-size: 1
@@ -114,7 +115,7 @@ backend:
       disaggregation-mode: decode
       disaggregation-transfer-backend: nixl
       mem-fraction-static: 0.8
-      context-length: 16896
+      context-length: 9600
       tensor-parallel-size: 4
       data-parallel-size: 1
       expert-parallel-size: 1
@@ -122,8 +123,8 @@ backend:
       dsa-prefill-backend: trtllm
       moe-runner-backend: flashinfer_trtllm
       flashinfer-allreduce-fusion-backend: auto
-      max-running-requests: 18
-      cuda-graph-max-bs-decode: 18
+      max-running-requests: 15
+      cuda-graph-max-bs-decode: 15
       disable-radix-cache: true
       stream-interval: 30
       weight-loader-prefetch-checkpoints: true
@@ -136,6 +137,6 @@ health_check:
 benchmark:
   type: sa-bench
   req_rate: inf
-  isl: 16384
-  osl: 512
-  concurrencies: 32x64x128x256
+  isl: 8192
+  osl: 1024
+  concurrencies: "150"
