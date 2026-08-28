@@ -1,0 +1,244 @@
+{
+  "schema_version": 1,
+  "dataset": "oci_aga_selected_power_samples.csv.gz",
+  "dataset_sha256": "b290e3789a49925c8607522ccfe827e09c75cf65450bdb1060cff069a3f5b96e",
+  "source": {
+    "cluster": "oci-aga-slurm-1",
+    "metric": "DCGM_FI_DEV_POWER_USAGE",
+    "source_sampling": "dcgm-exporter collect interval 1000 ms, polled approximately once per second",
+    "extraction": "All preserved POWER_USAGE rows whose integer-second UTC sample marker fell inclusively inside the selected SA-Bench main-run window"
+  },
+  "software": {
+    "model": "nvidia/GLM5-NVFP4",
+    "model_revision": "dc54ff55a7e9e71b85db953d8bc22eca894b44c6",
+    "container": "nvcr.io/nvidia/ai-dynamo/tensorrtllm-runtime:1.1.0-dev.3",
+    "driver": "580.167.08",
+    "cuda_compiler": "13.1.115",
+    "nccl": "2.29.2",
+    "tensorrt_llm": "1.3.0rc11",
+    "dynamo": "1.1.0.dev3"
+  },
+  "definitions": {
+    "quantile": "R-7/NumPy linear percentile: sort observations, rank=(n-1)*p, and linearly interpolate adjacent observations; p=0.95",
+    "pooled_gpu_time": "Treat every observed GPU POWER_USAGE value in the active window as one observation, including values at timestamps that are incomplete for other GPUs.",
+    "synchronized_per_second_fleet_average": "Retain only integer-second timestamps containing exactly one observation from every expected GPU, average all GPUs at each timestamp, then calculate statistics over those timestamp averages.",
+    "synchronized_role_breakdown": "On the same globally complete timestamp set, average GPUs within each role at each timestamp before calculating statistics.",
+    "active_window": "End is the second-resolution result JSON date field converted from PDT to UTC. Start is end minus the SA-Bench monotonic duration. Bounds are inclusive for integer-second DCGM markers."
+  },
+  "workloads": [
+    {
+      "job_id": "589394",
+      "workload": "24gpu_c1",
+      "description": "24 GPU minimum-latency selected point, concurrency 1",
+      "active_window_utc": {
+        "start": "2026-08-27T13:45:38.630527Z",
+        "end": "2026-08-27T13:48:37Z",
+        "duration_seconds": 178.36947308806702,
+        "result_date_pdt": "2026-08-27T06:48:37-07:00",
+        "command_launch_pdt": "2026-08-27T06:45:22-07:00"
+      },
+      "benchmark": {
+        "isl": 8192,
+        "osl": 1024,
+        "concurrency": 1,
+        "num_prompts": 16,
+        "output_tokens_per_second": 83.12521051558755,
+        "median_ttft_ms": 885.8197055524215
+      },
+      "expected_nodes": [
+        "nvl72d101-T07",
+        "nvl72d101-T08",
+        "nvl72d101-T09",
+        "nvl72d101-T10",
+        "nvl72d101-T11",
+        "nvl72d101-T12"
+      ],
+      "gpus_per_node": 4,
+      "roles": {
+        "prefill": [
+          "nvl72d101-T07",
+          "nvl72d101-T08"
+        ],
+        "decode": [
+          "nvl72d101-T09",
+          "nvl72d101-T10",
+          "nvl72d101-T11",
+          "nvl72d101-T12"
+        ]
+      }
+    },
+    {
+      "job_id": "589520",
+      "workload": "32gpu_c256",
+      "description": "32 GPU high-throughput selected point, concurrency 256",
+      "active_window_utc": {
+        "start": "2026-08-27T14:24:52.738635Z",
+        "end": "2026-08-27T14:32:31Z",
+        "duration_seconds": 458.2613651610445,
+        "result_date_pdt": "2026-08-27T07:32:31-07:00",
+        "command_launch_pdt": "2026-08-27T07:24:22-07:00"
+      },
+      "benchmark": {
+        "isl": 8192,
+        "osl": 1024,
+        "concurrency": 256,
+        "num_prompts": 4096,
+        "output_tokens_per_second": 8236.216899222134,
+        "median_ttft_ms": 7049.452619452495
+      },
+      "expected_nodes": [
+        "nvl72d101-T07",
+        "nvl72d101-T08",
+        "nvl72d101-T09",
+        "nvl72d101-T10",
+        "nvl72d101-T11",
+        "nvl72d101-T12",
+        "nvl72d101-T13",
+        "nvl72d101-T14"
+      ],
+      "gpus_per_node": 4,
+      "roles": {
+        "prefill": [
+          "nvl72d101-T07",
+          "nvl72d101-T08"
+        ],
+        "decode": [
+          "nvl72d101-T09",
+          "nvl72d101-T10",
+          "nvl72d101-T11",
+          "nvl72d101-T12",
+          "nvl72d101-T13",
+          "nvl72d101-T14"
+        ]
+      }
+    }
+  ],
+  "expected_analysis": {
+    "workloads": {
+      "24gpu_c1": {
+        "pooled_gpu_time": {
+          "overall": {
+            "n": 4132,
+            "mean_w": 280.5402853339787,
+            "p95_w": 365.15689999999995,
+            "max_w": 833.268
+          },
+          "roles": {
+            "prefill": {
+              "n": 1376,
+              "mean_w": 247.93227398255814,
+              "p95_w": 245.923,
+              "max_w": 833.268
+            },
+            "decode": {
+              "n": 2756,
+              "mean_w": 296.82062772133526,
+              "p95_w": 365.75474999999994,
+              "max_w": 370.261
+            }
+          }
+        },
+        "synchronized_per_second_fleet_average": {
+          "overall": {
+            "n": 142,
+            "mean_w": 280.63004254694835,
+            "p95_w": 292.75526666666667,
+            "max_w": 309.181125
+          },
+          "roles": {
+            "prefill": {
+              "n": 142,
+              "mean_w": 247.2743838028169,
+              "p95_w": 294.1551812499998,
+              "max_w": 322.435125
+            },
+            "decode": {
+              "n": 142,
+              "mean_w": 297.3078719190141,
+              "p95_w": 302.69777812499996,
+              "max_w": 302.9055
+            }
+          }
+        },
+        "completeness": {
+          "expected_integer_seconds": 179,
+          "timestamps_with_any_samples": 179,
+          "globally_complete_timestamps": 142,
+          "incomplete_timestamps": 37,
+          "complete_timestamp_fraction": 0.7932960893854749,
+          "observed_gpu_samples": 4132,
+          "expected_gpu_samples": 4296,
+          "gpu_sample_fraction": 0.9618249534450651
+        }
+      },
+      "32gpu_c256": {
+        "pooled_gpu_time": {
+          "overall": {
+            "n": 14064,
+            "mean_w": 678.7722711888509,
+            "p95_w": 1080.5568999999998,
+            "max_w": 1131.289
+          },
+          "roles": {
+            "prefill": {
+              "n": 3512,
+              "mean_w": 891.8934635535308,
+              "p95_w": 1099.85325,
+              "max_w": 1131.289
+            },
+            "decode": {
+              "n": 10552,
+              "mean_w": 607.8395923047763,
+              "p95_w": 633.1296,
+              "max_w": 664.943
+            }
+          }
+        },
+        "synchronized_per_second_fleet_average": {
+          "overall": {
+            "n": 321,
+            "mean_w": 677.0648423870716,
+            "p95_w": 721.4050625,
+            "max_w": 735.97975
+          },
+          "roles": {
+            "prefill": {
+              "n": 321,
+              "mean_w": 885.9752036604361,
+              "p95_w": 1058.82175,
+              "max_w": 1090.4945
+            },
+            "decode": {
+              "n": 321,
+              "mean_w": 607.4280552959501,
+              "p95_w": 623.1857916666667,
+              "max_w": 624.6297916666666
+            }
+          }
+        },
+        "completeness": {
+          "expected_integer_seconds": 459,
+          "timestamps_with_any_samples": 459,
+          "globally_complete_timestamps": 321,
+          "incomplete_timestamps": 138,
+          "complete_timestamp_fraction": 0.6993464052287581,
+          "observed_gpu_samples": 14064,
+          "expected_gpu_samples": 14688,
+          "gpu_sample_fraction": 0.9575163398692811
+        }
+      }
+    }
+  },
+  "power_limit_conclusion": {
+    "no_cap_requested": "High confidence: source recipes, generated SBATCH scripts, resolved lockfiles, launch commands, and preserved exact-job logs contain no software power-cap request or DPS/MaxLPS control.",
+    "effective_limit": "Unknown for jobs 589394 and 589520: the exact-run collector did not preserve DCGM_FI_DEV_POWER_MGMT_LIMIT or equivalent current/default/max limit fields.",
+    "later_evidence": "Job 596989 reportedly showed 1400 W current/default/max on all four GPUs of one allocated node. This is later, non-contemporaneous evidence and must not be assigned to either audited job."
+  },
+  "caveats": [
+    "The result JSON date has one-second resolution; derived window boundaries are therefore approximately plus or minus one second.",
+    "The synchronized method excludes timestamps missing any GPU and retained only 142/179 seconds for job 589394 and 321/459 seconds for job 589520.",
+    "Cross-GPU averaging before percentile calculation suppresses individual prefill excursions. The narrow OCI p95 is a p95 of fleet-average W/GPU, not a pooled per-GPU p95.",
+    "The 24-GPU pooled prefill mean exceeds its p95 because a small number of approximately 800 W prefill observations occur in a distribution otherwise concentrated near 240 W.",
+    "No conclusion about capped versus uncapped operation is justified from this package."
+  ]
+}
